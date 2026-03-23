@@ -61,8 +61,12 @@ app.get('/api/reviews', async (req, res) => {
 
         res.json(data);
     } catch (error) {
-        console.error("Scraping error:", error);
-        res.status(500).json({ error: "Internal server error during scraping" });
+        console.error(`[CRITICAL ERROR] Scraping failed for barcode ${barcode}:`, error);
+        res.status(500).json({ 
+            error: "Internal server error during scraping",
+            message: error.message,
+            barcode: barcode
+        });
     }
 });
 
