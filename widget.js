@@ -332,12 +332,19 @@
             () => window.UrunDetay?.Barkod,
             () => window.UrunDetay?.barcode,
             () => window.bcData?.barcode,
-            () => window.ViewData?.Product?.Barcode
+            () => window.ViewData?.Product?.Barcode,
+            // Ticimax dataLayer check
+            () => {
+                const dl = window.dataLayer || [];
+                const item = dl.find(d => d.ecommerce?.items?.[0]?.item_barcode)?.ecommerce.items[0];
+                return item?.item_barcode || item?.item_id;
+            }
         ];
         for (const getter of jsVars) {
             try {
                 const val = getter();
-                if (val && /^\d{8,14}$/.test(String(val).trim())) return String(val).trim();
+                // Match numeric (8-14) or alphanumeric (like TYB...)
+                if (val && /^[A-Z0-9-]{6,20}$/i.test(String(val).trim())) return String(val).trim();
             } catch (e) { }
         }
 
