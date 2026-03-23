@@ -362,7 +362,7 @@
         constructor(el) {
             this.el = el;
             this.barcode = autoDetectBarcode(el);
-            this.apiUrl = el.getAttribute('data-api-url') || 'http://localhost:3000/api/reviews';
+            this.apiUrl = el.getAttribute('data-api-url') || 'https://ty-hxv3.onrender.com/api/reviews';
             this.allReviews = [];
             this.filteredReviews = [];
             this.pageSize = 10;
