@@ -7,9 +7,7 @@ async function scrapeTrendyolReviews(barcode) {
     try {
         console.log(`[Scraper] Aranıyor: ${barcode}`);
         
-        browser = await puppeteer.launch({
-            // Docker ortamında chrome buradadır
-            executablePath: '/usr/bin/google-chrome',
+        const launchOptions = {
             args: [
                 '--no-sandbox', 
                 '--disable-setuid-sandbox', 
@@ -17,7 +15,16 @@ async function scrapeTrendyolReviews(barcode) {
                 '--disable-gpu'
             ],
             headless: "new"
-        });
+        };
+
+        // Render.com veya Docker ortamında özel bir path gerekebilir ama 
+        // npx puppeteer browsers install chrome ile yüklendiğinde otomatik bulunması için 
+        // executablePath'i opsiyonel yapıyoruz.
+        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        }
+
+        browser = await puppeteer.launch(launchOptions);
 
         const page = await browser.newPage();
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');

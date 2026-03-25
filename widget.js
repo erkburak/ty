@@ -388,8 +388,11 @@
             this.el.innerHTML = `<div class="ty-widget"><div class="ty-loading"><div class="ty-spinner"></div>Trendol yorumları hazırlanıyor…</div></div>`;
             try {
                 const res = await fetch(`${this.apiUrl}?barcode=${encodeURIComponent(this.barcode)}`);
-                if (!res.ok) throw new Error('API error');
                 const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.message || data.error || 'API Hatası');
+                }
 
                 this.overallRating = data.overallRating;
                 this.totalReviewsCount = data.totalReviews;
@@ -403,8 +406,13 @@
                     this.el.innerHTML = `<div class="ty-widget" style="text-align:center;padding:40px;color:#aaa;">Henüz bu ürüne ait yorum bulunmuyor.</div>`;
                 }
             } catch (e) {
-                console.error(e);
-                this.el.innerHTML = `<div class="ty-widget" style="text-align:center;padding:40px;color:#e53935;">Yorumlar yüklenirken bir sorun oluştu.</div>`;
+                console.error('[Trendyol Widget Error]:', e);
+                this.el.innerHTML = `
+                    <div class="ty-widget" style="text-align:center;padding:40px;color:#e53935;border:1px solid #ffcdd2;border-radius:12px;background:#ffebee;">
+                        <div style="font-weight:bold;margin-bottom:8px;">Hata Oluştu</div>
+                        <div style="font-size:14px;color:#c62828;">${e.message}</div>
+                        <div style="font-size:12px;color:#ef9a9a;margin-top:10px;">Barkod: ${this.barcode}</div>
+                    </div>`;
             }
         }
 

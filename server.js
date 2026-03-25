@@ -49,7 +49,12 @@ app.get('/api/reviews', async (req, res) => {
         const data = await scrapeTrendyolReviews(barcode);
         
         if (!data) {
-            return res.status(404).json({ error: "Product or reviews not found" });
+            console.warn(`[API] Ürün veya yorum bulunamadı: ${barcode}`);
+            return res.status(404).json({ 
+                error: "Not Found",
+                message: "Bu barkoda ait ürün veya yorum Trendyol üzerinde bulunamadı.",
+                barcode: barcode 
+            });
         }
 
         // Save to cache
@@ -63,9 +68,10 @@ app.get('/api/reviews', async (req, res) => {
     } catch (error) {
         console.error(`[CRITICAL ERROR] Scraping failed for barcode ${barcode}:`, error);
         res.status(500).json({ 
-            error: "Internal server error during scraping",
-            message: error.message,
-            barcode: barcode
+            error: "Internal Server Error",
+            message: error.message || "Sunucu tarafında bir hata oluştu.",
+            barcode: barcode,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });
