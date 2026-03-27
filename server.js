@@ -30,35 +30,39 @@ function saveCache(cache) {
 
 app.get('/api/reviews', async (req, res) => {
     const barcode = req.query.barcode;
-    if (!barcode) {
-        return res.status(400).json({ error: "Barcode is required" });
+    const contentId = req.query.contentId;
+    if (!barcode && !contentId) {
+        return res.status(400).json({ error: "Barcode or contentId is required" });
     }
+    const cacheKey = contentId ? `cid_${contentId}` : barcode;
 
-    console.log(`Request received for barcode: ${barcode}`);
+    console.log(`Request received: ${contentId ? 'contentId=' + contentId : 'barcode=' + barcode}`);
     const cache = getCache();
-    const cachedItem = cache[barcode];
+    const cachedItem = cache[cacheKey];
 
     // Check if cache is valid
     if (cachedItem && (Date.now() - cachedItem.timestamp < CACHE_DURATION_MS)) {
-        console.log(`[Cache Hit] Returning cached reviews for ${barcode}`);
+        console.log(`[Cache Hit] Returning cached reviews for ${cacheKey}`);
         return res.json(cachedItem.data);
     }
 
-    console.log(`[Cache Miss] Scraping reviews for ${barcode}...`);
+    console.log(`[Cache Miss] Fetching reviews for ${cacheKey}...`);
     try {
-        const data = await scrapeTrendyolReviews(barcode);
+        const data = contentId 
+            ? await scrapeTrendyolReviews(null, contentId)
+            : await scrapeTrendyolReviews(barcode);
         
         if (!data) {
-            console.warn(`[API] Ürün veya yorum bulunamadı: ${barcode}`);
+            console.warn(`[API] Ürün veya yorum bulunamadı: ${cacheKey}`);
             return res.status(404).json({ 
                 error: "Not Found",
-                message: "Bu barkoda ait ürün veya yorum Trendyol üzerinde bulunamadı.",
-                barcode: barcode 
+                message: "Bu ürüne ait yorum Trendyol üzerinde bulunamadı.",
+                query: cacheKey 
             });
         }
 
         // Save to cache
-        cache[barcode] = {
+        cache[cacheKey] = {
             timestamp: Date.now(),
             data: data
         };
@@ -66,11 +70,11 @@ app.get('/api/reviews', async (req, res) => {
 
         res.json(data);
     } catch (error) {
-        console.error(`[CRITICAL ERROR] Scraping failed for barcode ${barcode}:`, error);
+        console.error(`[CRITICAL ERROR] Failed for ${cacheKey}:`, error);
         res.status(500).json({ 
             error: "Internal Server Error",
             message: error.message || "Sunucu tarafında bir hata oluştu.",
-            barcode: barcode,
+            query: cacheKey,
             stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }

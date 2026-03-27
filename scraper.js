@@ -156,11 +156,17 @@ async function findContentId(barcode) {
     return null;
 }
 
-async function scrapeTrendyolReviews(barcode) {
+async function scrapeTrendyolReviews(barcode, directContentId) {
     try {
-        console.log(`[Scraper] Aranıyor: ${barcode}`);
+        let contentId;
 
-        const contentId = await findContentId(barcode);
+        if (directContentId) {
+            console.log(`[Scraper] Doğrudan contentId kullanılıyor: ${directContentId}`);
+            contentId = directContentId;
+        } else {
+            console.log(`[Scraper] Barkod ile aranıyor: ${barcode}`);
+            contentId = await findContentId(barcode);
+        }
 
         if (!contentId) {
             console.log(`[Scraper] Ürün bulunamadı: ${barcode}`);

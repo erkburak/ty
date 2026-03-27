@@ -368,7 +368,8 @@
     class TrendyolWidget {
         constructor(el) {
             this.el = el;
-            this.barcode = autoDetectBarcode(el);
+            this.contentId = el.getAttribute('data-content-id');
+            this.barcode = this.contentId ? null : autoDetectBarcode(el);
             this.apiUrl = el.getAttribute('data-api-url') || 'https://ty-hxv3.onrender.com/api/reviews';
             this.allReviews = [];
             this.filteredReviews = [];
@@ -380,14 +381,17 @@
 
         async init() {
             ensureLightbox();
-            if (!this.barcode) {
-                this.el.innerHTML = `<div class="ty-widget" style="text-align:center;padding:40px;color:#bbb;font-size:14px;">Widget: ürün barkodu tespit edilemedi.</div>`;
+            if (!this.barcode && !this.contentId) {
+                this.el.innerHTML = `<div class="ty-widget" style="text-align:center;padding:40px;color:#bbb;font-size:14px;">Widget: ürün barkodu veya content ID tespit edilemedi.</div>`;
                 return;
             }
 
-            this.el.innerHTML = `<div class="ty-widget"><div class="ty-loading"><div class="ty-spinner"></div>Trendol yorumları hazırlanıyor…</div></div>`;
+            this.el.innerHTML = `<div class="ty-widget"><div class="ty-loading"><div class="ty-spinner"></div>Trendyol yorumları hazırlanıyor…</div></div>`;
             try {
-                const res = await fetch(`${this.apiUrl}?barcode=${encodeURIComponent(this.barcode)}`);
+                const queryParam = this.contentId 
+                    ? `contentId=${encodeURIComponent(this.contentId)}`
+                    : `barcode=${encodeURIComponent(this.barcode)}`;
+                const res = await fetch(`${this.apiUrl}?${queryParam}`);
                 const data = await res.json();
 
                 if (!res.ok) {
@@ -411,7 +415,7 @@
                     <div class="ty-widget" style="text-align:center;padding:40px;color:#e53935;border:1px solid #ffcdd2;border-radius:12px;background:#ffebee;">
                         <div style="font-weight:bold;margin-bottom:8px;">Hata Oluştu</div>
                         <div style="font-size:14px;color:#c62828;">${e.message}</div>
-                        <div style="font-size:12px;color:#ef9a9a;margin-top:10px;">Barkod: ${this.barcode}</div>
+                        <div style="font-size:12px;color:#ef9a9a;margin-top:10px;">${this.contentId ? 'Content ID: ' + this.contentId : 'Barkod: ' + this.barcode}</div>
                     </div>`;
             }
         }
