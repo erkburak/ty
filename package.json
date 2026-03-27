@@ -16,9 +16,6 @@
     "axios": "^1.13.6",
     "cheerio": "^1.2.0",
     "cors": "^2.8.6",
-    "express": "^5.2.1",
-    "puppeteer": "^21.5.0",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2"
+    "express": "^5.2.1"
   }
 }
